@@ -1,0 +1,194 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Тестовый пример. </title>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<script type="text/javascript" src="js/j_script.js"></script>
+<script type="text/javascript">
+    
+    // обновление данных о сотрудниках в выборе <select> 
+    function updatePickers(){
+        $('.slct option').remove();
+        $('.slct').append( $('<option></option>').val('').html(""));
+        
+        $.getJSON("http://localhost:8080/demo/all_employee", function(result){
+            $.each(result, function(i, field){
+                $('#r_skill').append( $('<option></option>').val(field.id).html(field.full_name));
+            });
+        });
+        
+        $.getJSON("http://localhost:8080/demo/all_employee_without_user", function(result){
+            $.each(result, function(i, field){
+                $('#r_user').append( $('<option></option>').val(field.id).html(field.full_name));
+            });
+        });
+    }
+    
+    // валидаторы для полей
+    function isEmpty(value) {
+        return typeof value == 'string' && !value.trim() || typeof value == 'undefined' || value === null;
+    }
+    
+    function validateEmployee(){
+        if( isEmpty( $("#full_name").val() ) ) 
+            { alert("Заполните полное имя"); return false;}
+        if( isEmpty( $("#short_name").val() )) 
+            { alert("Заполните короткое имя"); return false;}
+        if( isEmpty( $("#age").val() )       ) 
+            { alert("Заполните возраст"); return false;}
+        if( isEmpty( $("#city").val() )      ) 
+            { alert("Заполните город"); return false;}
+        return true;
+    }
+    
+    function validateUser(){
+        if( isEmpty( $("#u_name").val() ) ) 
+            { alert("Заполните ник"); return false;}
+        if( isEmpty( $("#password").val() )) 
+            { alert("Заполните пароль"); return false;}
+        if( isEmpty( $("#r_user").val() )       ) 
+            { alert("Выберите сотрудника"); return false;}
+        return true;
+    }
+    
+    function validateSkill(){
+        if( isEmpty( $("#s_name").val()      ) ) 
+            { alert("Заполните Название:"); return false;}
+            
+        if( isEmpty( $("#description").val() ) ) 
+            { alert("Заполните описание"); return false;}
+            
+        if( isEmpty( $("#r_skill").val()     ) ) 
+            { alert("Выберите сотрудника"); return false;}
+        return true;
+    }
+    
+    $(document).ready(function ( ) {
+
+        updatePickers();
+        
+        // Добавление листенеров на кнопки
+        
+        $("#save_employee").click(function(){
+            if(!validateEmployee()) return;
+            $.post("http://localhost:8080/demo/add_employee", 
+                    {full_name: $("#full_name").val(), 
+                     short_name: $("#short_name").val(), 
+                     age:  $("#age").val(),
+                     city: $("#city").val()
+                    },
+                    function(data, status){
+                        $("#test").append("Data: " + data + "\nStatus: " + status + "<br>");
+                        if(data == "Saved") updatePickers();
+                    });      
+        }); 
+        
+        $("#save_user").click(function(){
+            if(!validateUser()) return;
+            $.post("http://localhost:8080/demo/add_user", 
+                    {name: $("#u_name").val(), 
+                     password: $("#password").val(), 
+                     employee_id:  $("#r_user").val(),
+                    },
+                    function(data, status){
+                        $("#test").append("Data: " + data + "\nStatus: " + status + "<br>");
+                        if(data == "Saved") updatePickers();
+                    });      
+        });
+        
+        $("#save_skill").click(function(){
+            if(!validateSkill()) return;
+            $.post("http://localhost:8080/demo/add_skill", 
+                    {name: $("#s_name").val(), 
+                     description: $("#description").val(), 
+                     employee_id:  $("#r_skill").val(),
+                    },
+                    function(data, status){
+                        $("#test").append("Data: " + data + "\nStatus: " + status + "<br>");
+                    });      
+        });
+    
+}); // (document).ready
+</script>
+
+<style type="text/css">
+   .btn { 
+	width: 40px;
+	padding: 3px;
+   }
+   .inp { 
+	width: 300px;
+	padding: 3px;
+   }
+  </style>
+
+</head>
+
+<body>
+    <div id='content'  style="width:670px;">
+        <center><h2>Тест. Отчет Exel</h2></center>
+      
+    <div>	
+        <p></p>
+        <hr>
+        <!------------------- Сотрудник --------------------------------------->
+        <div>
+            <div><b>Создать нового сотрудника</b></div>
+            <table>
+                <tr>
+                    <td>Полное имя:<br> <input type="text" id="full_name" name="full_name"></td>
+                    <td>Короткое имя:<br><input type="text" id="short_name" name="short_name" /></td>
+                    <td>Возраст:<br> <input type="text" id="age" name="age"></td>
+                    <td>Город:<br><input type="text" id="city" name="city" /></td>
+                    <td><br><input type="submit" id="save_employee" value="Создать" /></td>
+                </tr>
+            </table>
+	</div>
+        <hr>
+        <!------------------- Пользователь --------------------------------------->
+        <div>
+            <div><b>Создать нового пользователя</b></div>
+            <table>
+                <tr>
+                    <td>Ник:<br> <input required type="text" id="u_name" name="name"></td>
+                    <td>Пароль:<br><input required type="text" id="password" name="password" /></td>
+                    <td>Принадлежит сотруднику<br>
+                        <select required class="slct" id="r_user" style="width:200px;"></select>
+                    </td>
+                    <td><br><input type="submit" id="save_user" value="Создать" /></td>
+                </tr>
+            </table>
+	</div>
+        <hr>
+        <!------------------- Навык --------------------------------------->
+        <div>
+            <div><b>Создать новый навык</b></div>
+                <table>
+                        <tr>
+                            <td>Название:<br><input required type="text" id="s_name" name="name"/></td>
+                            <td>Описание:<br><input required type="text" id="description" name="description"/></td>
+                            <td>Принадлежит сотруднику<br>
+                                <select required class="slct" id="r_skill" style="width:200px;"></select>
+                            </td>
+                            <td><br><input type="submit" id="save_skill" value="Создать"/></td>
+                        </tr>
+                </table>
+	</div>
+        <hr>
+    </div>
+        
+    <hr>
+    <!--------------------------- Отчет --------------------------------------->
+    <a href="http://localhost:8080/demo/exel">Загрузить отчет</a>
+    <hr>
+    <!------------------- Служебная информация  ------------------------------->
+    <center><h5>Результат</h5></center>
+    <div id="test"  style="width:400px;"></div>
+</div>
+
+
+</body>
+</html>
